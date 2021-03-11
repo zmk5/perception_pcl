@@ -86,10 +86,10 @@ Filter::computePublish(const PointCloud2::ConstSharedPtr & input, const IndicesP
 {
   PointCloud2 output;
   // Call the virtual method in the child
-  filter(input, indices, output);
+  // filter(input, indices, output);
 
   // PointCloud2::Ptr cloud_tf(new PointCloud2(output));     // set the output by default
-  PointCloud2::Ptr cloud_tf = std::make_shared<PointCloud2>(output);  // Set the output by default
+  PointCloud2::SharedPtr cloud_tf = std::make_shared<PointCloud2>(output);  // Set the output by default
   // Check whether the user has given a different output TF frame
   if (!tf_output_frame_.empty() && output.header.frame_id != tf_output_frame_) {
     RCLCPP_DEBUG(this->get_logger(),
@@ -144,23 +144,25 @@ Filter::subscribe()
     sub_input_filter_.subscribe(this, "input", rmw_qos_profile_sensor_data);
     sub_indices_filter_.subscribe(this, "indices", rmw_qos_profile_sensor_data);
 
-    // if (approximate_sync_) {
-    //   sync_input_indices_a_ =
-    //     std::make_shared<message_filters::Synchronizer<sync_policies::ApproximateTime<PointCloud2,
-    //       pcl_msgs::msg::PointIndices>>>(max_queue_size_);
-    //   sync_input_indices_a_->connectInput(sub_input_filter_, sub_indices_filter_);
-    //   sync_input_indices_a_->registerCallback(std::bind(&Filter::input_indices_callback, this, std::placeholders::_1, std::placeholders::_2));
-    // } else {
-    //   sync_input_indices_e_ =
-    //     std::make_shared<message_filters::Synchronizer<sync_policies::ExactTime<PointCloud2,
-    //       pcl_msgs::msg::PointIndices>>>(max_queue_size_);
-    //   sync_input_indices_e_->connectInput(sub_input_filter_, sub_indices_filter_);
-    //   sync_input_indices_e_->registerCallback(std::bind(&Filter::input_indices_callback, this, std::placeholders::_1, std::placeholders::_2));
-    // }
+    if (approximate_sync_) {
+      sync_input_indices_a_ =
+        std::make_shared<message_filters::Synchronizer<sync_policies::ApproximateTime<PointCloud2,
+          pcl_msgs::msg::PointIndices>>>(max_queue_size_);
+      sync_input_indices_a_->connectInput(sub_input_filter_, sub_indices_filter_);
+      // sync_input_indices_a_->registerCallback(std::bind(&Filter::input_indices_callback, this, std::placeholders::_1, std::placeholders::_2));
+      sync_input_indices_a_->registerCallback(&Filter::input_indices_callback, this);
+    } else {
+      sync_input_indices_e_ =
+         std::make_shared<message_filters::Synchronizer<sync_policies::ExactTime<PointCloud2,
+           pcl_msgs::msg::PointIndices>>>(max_queue_size_);
+      sync_input_indices_e_->connectInput(sub_input_filter_, sub_indices_filter_);
+      // sync_input_indices_e_->registerCallback(std::bind(&Filter::input_indices_callback, this, std::placeholders::_1, std::placeholders::_2));
+      sync_input_indices_e_->registerCallback(&Filter::input_indices_callback, this);
+    }
   } else {
     // Subscribe in an old fashion to input only (no filters)
     std::function<void(const PointCloud2::SharedPtr cloud)> bound_callback_func =
-      std::bind(&Filter::input_indices_callback, this, std::placeholders::_1, indices_);
+      std::bind(&Filter::input_indices_callback, this, std::placeholders::_1, PointIndicesConstPtr());
     sub_input_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
       "input", max_queue_size_, bound_callback_func);
   }

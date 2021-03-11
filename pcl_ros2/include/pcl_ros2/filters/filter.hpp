@@ -39,7 +39,7 @@
 #define PCL_ROS2__FILTERS__FILTER_HPP_
 
 #include <memory>
-#include <mutex>
+// #include <mutex>
 #include <string>
 #include <pcl/filters/filter.h>
 
@@ -119,17 +119,17 @@ protected:
   std::string tf_output_frame_;
 
   /** \brief Internal mutex. */
-  std::mutex mutex_;
+  // std::mutex mutex_;
 
-    /** \brief Virtual abstract filter method. To be implemented by every child.
+  /** \brief Virtual abstract filter method. To be implemented by every child.
     * \param input the input point cloud dataset.
     * \param indices a pointer to the vector of point indices to use.
     * \param output the resultant filtered PointCloud2
     */
-  virtual void
-  filter(
-    const PointCloud2::ConstSharedPtr & input, const IndicesPtr & indices,
-    PointCloud2 & output) = 0;
+  //virtual void
+  //filter(
+  //  const PointCloud2::ConstSharedPtr & input, const IndicesPtr & indices,
+  //  PointCloud2 & output) = 0;
 
   /** \brief Lazy transport subscribe routine. */
   virtual void
@@ -206,8 +206,6 @@ private:
   /** \brief Dynamic reconfigure service callback. */
   // virtual void
   // config_callback(pcl_ros::FilterConfig & config, uint32_t level);
-
-  PointIndicesConstPtr indices_;
 
   /** \brief PointCloud2 + Indices data callback. */
   void

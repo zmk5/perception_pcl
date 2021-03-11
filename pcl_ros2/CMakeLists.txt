@@ -65,6 +65,8 @@ target_link_libraries(pcl_ros2_tf ${PCL_LIBRARIES})
 # add_dependencies(pcl_ros2_filters ${PROJECT_NAME}_gencfg)
 # class_loader_hide_library_symbols(pcl_ros2_filters)
 
+set(node_plugins "")
+
 add_library(filter_component SHARED
   src/filters/filter.cpp)
 target_compile_definitions(filter_component
